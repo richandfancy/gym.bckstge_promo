@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitKoh — The Operating System for Modern Gyms</title>
+  <meta name="description" content="Turn your gym into a tech-powered health destination. AI nutrition tracking, trainer dashboards, and instant deployment — no app store required.">
+  <link rel="icon" href="../client/public/icons/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050505;
+      --bg-card: #0c0c0c;
+      --bg-elevated: #151515;
+      --bg-subtle: #1a1a1a;
+      --text: #f5f5f5;
+      --text-muted: #888;
+      --text-dim: #555;
+      --green: #22c55e;
+      --green-light: #4ade80;
+      --green-bright: #86efac;
+      --green-glow: rgba(34, 197, 94, 0.12);
+      --green-glow-strong: rgba(34, 197, 94, 0.25);
+      --amber: #f59e0b;
+      --amber-light: #fbbf24;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-lg: 24px;
+      --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    h1, h2, h3, h4, h5 { font-family: var(--font-display); line-height: 1.1; letter-spacing: -0.02em; }
+
+    .headline-xl {
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+    }
+
+    .headline-lg {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .subtext {
+      font-size: clamp(1rem, 1.5vw, 1.25rem);
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+
+    .green-text { color: var(--green-light); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .section { padding: 120px 0; position: relative; }
+    @media (max-width: 768px) { .section { padding: 80px 0; } }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 16px 24px;
+      transition: background 0.3s, backdrop-filter 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(5, 5, 5, 0.85);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+    .nav-logo img { width: 40px; height: 40px; border-radius: 50%; }
+    .nav-logo span { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) { .nav-links .nav-hide { display: none; } .nav-links { gap: 16px; } }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-primary {
+      background: var(--green); color: #050505;
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.3), 0 4px 20px rgba(34, 197, 94, 0.15);
+    }
+    .btn-primary:hover {
+      background: var(--green-light);
+      box-shadow: 0 0 50px rgba(34, 197, 94, 0.4), 0 4px 30px rgba(34, 197, 94, 0.25);
+      transform: translateY(-2px);
+    }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.15); }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+    .btn-nav { padding: 10px 22px; font-size: 0.85rem; }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; position: relative; overflow: hidden; }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(34, 197, 94, 0.08), transparent 70%),
+        radial-gradient(ellipse 50% 50% at 20% 80%, rgba(34, 197, 94, 0.04), transparent 60%);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 2; }
+    .hero-content { display: flex; flex-direction: column; gap: 28px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; background: var(--green-glow);
+      border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 100px;
+      font-size: 0.8rem; font-weight: 600; color: var(--green-light); width: fit-content;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse-dot 2s ease infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+    .hero-phone-wrapper { display: flex; justify-content: center; position: relative; }
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero-content { align-items: center; }
+      .subtext { margin: 0 auto; }
+      .hero-buttons { justify-content: center; }
+      .hero-phone-wrapper { margin-top: 20px; }
+    }
+
+    /* PHONE MOCKUP */
+    .phone {
+      width: 280px; height: 580px; background: #000;
+      border-radius: 44px; padding: 12px; position: relative;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 25px 80px rgba(0,0,0,0.6), 0 0 60px var(--green-glow);
+    }
+    .phone-screen { width: 100%; height: 100%; background: var(--bg); border-radius: 34px; overflow: hidden; position: relative; }
+    .phone-notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 28px; background: #000; border-radius: 20px; z-index: 10; }
+    .phone-glow {
+      position: absolute; width: 300px; height: 300px; border-radius: 50%;
+      filter: blur(80px); background: rgba(34, 197, 94, 0.15);
+      top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1;
+    }
+    .screen-content { padding: 48px 16px 16px; height: 100%; display: flex; flex-direction: column; font-size: 11px; overflow: hidden; }
+    .screen-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .screen-date { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+    .screen-arrows { display: flex; gap: 8px; color: var(--text-muted); font-size: 12px; }
+
+    .macro-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .macro-row { display: flex; align-items: center; gap: 8px; }
+    .macro-label { width: 48px; font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .macro-bar { flex: 1; height: 6px; background: var(--bg-subtle); border-radius: 3px; overflow: hidden; }
+    .macro-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .macro-fill.cal { background: var(--green); width: 84%; }
+    .macro-fill.pro { background: var(--blue); width: 89%; }
+    .macro-fill.carb { background: var(--amber); width: 72%; }
+    .macro-fill.fat { background: var(--red); width: 65%; }
+    .macro-value { width: 56px; text-align: right; font-size: 9px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+    .meal-section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin: 10px 0 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .meal-card { display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--bg-elevated); border-radius: 10px; margin-bottom: 6px; }
+    .meal-thumb { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .meal-info { flex: 1; min-width: 0; }
+    .meal-name { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meal-macros { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
+    .meal-kcal { font-size: 10px; font-weight: 600; color: var(--green-light); white-space: nowrap; }
+
+    .phone-fab {
+      position: absolute; bottom: 70px; right: 24px;
+      width: 44px; height: 44px; background: var(--green); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #050505; font-weight: 700;
+      box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    }
+    .phone-tabbar {
+      position: absolute; bottom: 12px; left: 20px; right: 20px; height: 48px;
+      background: rgba(20,20,20,0.9); backdrop-filter: blur(10px);
+      border-radius: 16px; display: flex; align-items: center; justify-content: space-around; padding: 0 8px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 8px; color: var(--text-dim); }
+    .tab-item.active { color: var(--green-light); }
+    .tab-icon { width: 18px; height: 18px; border-radius: 4px; background: currentColor; opacity: 0.3; }
+    .tab-item.active .tab-icon { opacity: 0.8; }
+
+    /* METRICS STRIP */
+    .metrics-strip { border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 40px 0; background: var(--bg-card); }
+    .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 32px; text-align: center; }
+    .metric-number { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 800; color: var(--green-light); }
+    .metric-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+    @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+    @media (max-width: 480px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* FEATURE SECTIONS */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .feature-grid.reverse .feature-visual { order: -1; }
+    @media (max-width: 900px) { .feature-grid { grid-template-columns: 1fr; gap: 48px; } .feature-grid.reverse .feature-visual { order: 0; } }
+    .feature-tag { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--green); margin-bottom: 16px; }
+    .feature-title { margin-bottom: 20px; }
+    .feature-desc { color: var(--text-muted); line-height: 1.7; margin-bottom: 32px; max-width: 480px; }
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+    .feature-list li { display: flex; gap: 14px; align-items: flex-start; }
+    .feature-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--green-glow); border: 1px solid rgba(34, 197, 94, 0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .feature-text strong { display: block; font-size: 0.95rem; margin-bottom: 2px; }
+    .feature-text span { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .feature-visual { display: flex; justify-content: center; }
+
+    /* PLAN SCREEN */
+    .plan-card { padding: 10px; background: var(--bg-elevated); border-radius: 10px; margin-bottom: 8px; }
+    .plan-meal-type { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); margin-bottom: 4px; }
+    .plan-meal-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+    .plan-meal-macros { font-size: 9px; color: var(--text-muted); display: flex; gap: 8px; }
+    .plan-total { margin-top: 12px; padding: 10px; background: var(--green-glow); border: 1px solid rgba(34, 197, 94, 0.15); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .plan-total-label { font-size: 10px; font-weight: 600; }
+    .plan-total-cals { font-size: 12px; font-weight: 700; color: var(--green-light); }
+    .plan-btn { display: block; margin-top: 10px; padding: 10px; background: var(--green); border-radius: 10px; text-align: center; font-size: 11px; font-weight: 700; color: #050505; }
+
+    /* CLIENT SCREEN */
+    .client-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg-elevated); border-radius: 10px; margin-bottom: 6px; }
+    .client-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #050505; flex-shrink: 0; }
+    .client-name { font-size: 11px; font-weight: 600; }
+    .client-meta { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
+    .client-progress { margin-left: auto; text-align: right; }
+    .client-cals { font-size: 10px; font-weight: 600; color: var(--green-light); }
+    .client-target { font-size: 8px; color: var(--text-dim); }
+
+    /* ADMIN SCREEN */
+    .admin-item { display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--bg-elevated); border-radius: 10px; margin-bottom: 6px; }
+    .admin-img { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .admin-name { font-size: 11px; font-weight: 600; }
+    .admin-detail { font-size: 9px; color: var(--text-muted); }
+    .admin-badge { margin-left: auto; font-size: 8px; padding: 3px 8px; background: var(--green-glow); color: var(--green-light); border-radius: 100px; font-weight: 600; }
+
+    /* CAPABILITIES GRID */
+    .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 60px; }
+    .cap-card {
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius); padding: 32px; transition: all 0.3s;
+    }
+    .cap-card:hover { border-color: rgba(34, 197, 94, 0.2); box-shadow: 0 0 40px var(--green-glow); transform: translateY(-4px); }
+    .cap-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: var(--green-glow); border: 1px solid rgba(34, 197, 94, 0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px;
+    }
+    .cap-title { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; }
+    .cap-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+    @media (max-width: 900px) { .cap-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .cap-grid { grid-template-columns: 1fr; } }
+
+    /* COMPARISON TABLE */
+    .compare-section { background: var(--bg-card); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 48px; font-size: 0.9rem; }
+    .compare-table th { text-align: left; padding: 16px 20px; font-family: var(--font-display); font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .compare-table th:not(:first-child) { text-align: center; }
+    .compare-table td { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-muted); }
+    .compare-table td:not(:first-child) { text-align: center; }
+    .check { color: var(--green-light); font-size: 1.2em; }
+    .cross { color: var(--text-dim); font-size: 1.2em; }
+    .compare-table thead th { background: rgba(255,255,255,0.02); }
+    .compare-table th.highlight { color: var(--green-light); }
+    .compare-table td.highlight { background: rgba(34, 197, 94, 0.03); }
+    @media (max-width: 600px) { .compare-table { font-size: 0.78rem; } .compare-table th, .compare-table td { padding: 10px 8px; } }
+
+    /* CTA */
+    .cta-section { text-align: center; padding: 120px 0; position: relative; }
+    .cta-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(34, 197, 94, 0.08), transparent 70%); }
+    .cta-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .cta-title { max-width: 700px; }
+    .cta-subtitle { color: var(--text-muted); font-size: 1.1rem; max-width: 500px; }
+    .cta-buttons { display: flex; gap: 16px; margin-top: 8px; }
+
+    /* QUOTE */
+    .quote-block { max-width: 700px; margin: 0 auto; text-align: center; padding: 40px 0; }
+    .quote-text { font-family: var(--font-display); font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 700; font-style: italic; line-height: 1.4; margin-bottom: 20px; }
+    .quote-author { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 48px 0; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo img { width: 32px; height: 32px; border-radius: 50%; }
+    .footer-logo span { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+    .footer-text { color: var(--text-dim); font-size: 0.8rem; }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ANIMATIONS */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 50%, transparent); }
+
+    .logo-row { display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap; }
+    .logo-badge { font-size: 0.75rem; color: var(--text-dim); }
+
+    /* Category pills helper */
+    .pill { padding: 4px 10px; border-radius: 100px; font-size: 9px; font-weight: 600; white-space: nowrap; }
+    .pill-active { background: var(--green); color: #050505; }
+    .pill-inactive { background: var(--bg-elevated); color: var(--text-muted); }
+
+    /* Recently logged thumbnails */
+    .recent-thumb { width: 60px; flex-shrink: 0; }
+    .recent-img { width: 60px; height: 60px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .recent-label { font-size: 8px; margin-top: 3px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <img src="brand-logo.png" alt="FitKoh" width="40" height="40">
+        <span>FitKoh</span>
+      </a>
+      <ul class="nav-links">
+        <li class="nav-hide"><a href="#members">For Members</a></li>
+        <li class="nav-hide"><a href="#ai">AI Features</a></li>
+        <li class="nav-hide"><a href="#trainers">For Trainers</a></li>
+        <li class="nav-hide"><a href="#owners">For Owners</a></li>
+        <li><a href="#cta" class="btn btn-primary btn-nav">Book a Demo</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge reveal">
+            <div class="hero-badge-dot"></div>
+            Live in production &mdash; powering real gyms
+          </div>
+          <h1 class="headline-xl reveal reveal-delay-1">
+            The Operating System for <span class="green-text">Modern Gyms</span>
+          </h1>
+          <p class="subtext reveal reveal-delay-2">
+            AI-powered nutrition tracking, trainer dashboards, and instant deployment. Your members get a personal nutritionist in their pocket. Your trainers get superpowers. You get a retention machine.
+          </p>
+          <div class="hero-buttons reveal reveal-delay-3">
+            <a href="#cta" class="btn btn-primary">Book a Demo</a>
+            <a href="#members" class="btn btn-secondary">See Features</a>
+          </div>
+        </div>
+        <div class="hero-phone-wrapper reveal reveal-delay-2">
+          <div class="phone-glow"></div>
+          <div class="phone" id="phone-tracker">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="screen-content">
+                <div class="screen-header">
+                  <div class="screen-date">Mon, Mar 31</div>
+                  <div class="screen-arrows">&larr; &rarr;</div>
+                </div>
+                <div class="macro-bars">
+                  <div class="macro-row"><div class="macro-label">Cal</div><div class="macro-bar"><div class="macro-fill cal"></div></div><div class="macro-value">1,847 / 2,200</div></div>
+                  <div class="macro-row"><div class="macro-label">Protein</div><div class="macro-bar"><div class="macro-fill pro"></div></div><div class="macro-value">142g / 160g</div></div>
+                  <div class="macro-row"><div class="macro-label">Carbs</div><div class="macro-bar"><div class="macro-fill carb"></div></div><div class="macro-value">186g / 260g</div></div>
+                  <div class="macro-row"><div class="macro-label">Fat</div><div class="macro-bar"><div class="macro-fill fat"></div></div><div class="macro-value">52g / 80g</div></div>
+                </div>
+                <div class="meal-section-label">Breakfast</div>
+                <div class="meal-card">
+                  <div class="meal-thumb" style="background:linear-gradient(135deg,#166534,#22c55e)">&#127796;</div>
+                  <div class="meal-info"><div class="meal-name">Protein Smoothie Bowl</div><div class="meal-macros">32g P &middot; 48g C &middot; 12g F</div></div>
+                  <div class="meal-kcal">420</div>
+                </div>
+                <div class="meal-card">
+                  <div class="meal-thumb" style="background:linear-gradient(135deg,#92400e,#f59e0b)">&#129374;</div>
+                  <div class="meal-info"><div class="meal-name">Banana Pancakes</div><div class="meal-macros">18g P &middot; 52g C &middot; 14g F</div></div>
+                  <div class="meal-kcal">380</div>
+                </div>
+                <div class="meal-section-label">Lunch</div>
+                <div class="meal-card">
+                  <div class="meal-thumb" style="background:linear-gradient(135deg,#065f46,#10b981)">&#127835;</div>
+                  <div class="meal-info"><div class="meal-name">Thai Green Curry</div><div class="meal-macros">38g P &middot; 42g C &middot; 16g F</div></div>
+                  <div class="meal-kcal">520</div>
+                </div>
+                <div class="meal-card">
+                  <div class="meal-thumb" style="background:linear-gradient(135deg,#1e3a5f,#3b82f6)">&#129367;</div>
+                  <div class="meal-info"><div class="meal-name">Buddha Bowl</div><div class="meal-macros">28g P &middot; 44g C &middot; 10g F</div></div>
+                  <div class="meal-kcal">460</div>
+                </div>
+                <div class="meal-section-label">Dinner</div>
+                <div class="meal-card">
+                  <div class="meal-thumb" style="background:linear-gradient(135deg,#701a75,#d946ef)">&#127843;</div>
+                  <div class="meal-info"><div class="meal-name">Grilled Fish &amp; Veggies</div><div class="meal-macros">42g P &middot; 18g C &middot; 8g F</div></div>
+                  <div class="meal-kcal">320</div>
+                </div>
+              </div>
+              <div class="phone-fab">+</div>
+              <div class="phone-tabbar">
+                <div class="tab-item"><div class="tab-icon"></div><span>Profile</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Menu</span></div>
+                <div class="tab-item active"><div class="tab-icon"></div><span>My Day</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Plan</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS STRIP -->
+  <div class="metrics-strip">
+    <div class="container">
+      <div class="metrics-grid">
+        <div class="metric-item reveal"><div class="metric-number">&lt;10s</div><div class="metric-label">QR to first meal logged</div></div>
+        <div class="metric-item reveal reveal-delay-1"><div class="metric-number">5</div><div class="metric-label">Languages built-in</div></div>
+        <div class="metric-item reveal reveal-delay-2"><div class="metric-number">25+</div><div class="metric-label">AI-powered tools</div></div>
+        <div class="metric-item reveal reveal-delay-3"><div class="metric-number">100%</div><div class="metric-label">Offline capable</div></div>
+        <div class="metric-item reveal reveal-delay-4"><div class="metric-number">0</div><div class="metric-label">App store fees</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOR MEMBERS -->
+  <section class="section" id="members">
+    <div class="container">
+      <div class="feature-grid">
+        <div class="feature-content reveal">
+          <div class="feature-tag">For Members</div>
+          <h2 class="headline-lg feature-title">Zero Friction.<br>Total Engagement.</h2>
+          <p class="feature-desc">Members scan a QR code, start tracking meals in seconds, and get an AI nutritionist that knows your menu. No downloads. No signups. No friction.</p>
+          <ul class="feature-list">
+            <li><div class="feature-icon">&#128244;</div><div class="feature-text"><strong>Scan &amp; Go</strong><span>QR code at reception. No app download, no account creation. Tracking meals in under 10 seconds.</span></div></li>
+            <li><div class="feature-icon">&#129302;</div><div class="feature-text"><strong>AI Chat Onboarding</strong><span>A conversational chatbot collects health info, body metrics, and goals. No forms, just a natural chat.</span></div></li>
+            <li><div class="feature-icon">&#127860;</div><div class="feature-text"><strong>Your Menu, Their Macros</strong><span>Every dish from your kitchen with exact calories, protein, carbs, fat. One-tap logging with quantity control.</span></div></li>
+            <li><div class="feature-icon">&#127759;</div><div class="feature-text"><strong>Works Offline</strong><span>Logs meals at the pool, in the gym, anywhere. Syncs automatically when back online.</span></div></li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="screen-content">
+                <div class="screen-header"><div class="screen-date">&#127828; Menu</div><div style="font-size:12px;color:var(--text-muted)">&#128269;</div></div>
+                <div style="display:flex;gap:6px;margin-bottom:12px;overflow:hidden">
+                  <div class="pill pill-active">All</div><div class="pill pill-inactive">Breakfast</div><div class="pill pill-inactive">Bowls</div><div class="pill pill-inactive">Thai</div>
+                </div>
+                <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Recently Logged</div>
+                <div style="display:flex;gap:8px;margin-bottom:14px;overflow:hidden">
+                  <div class="recent-thumb"><div class="recent-img" style="background:linear-gradient(135deg,#166534,#22c55e)">&#127796;</div><div class="recent-label">Smoothie</div></div>
+                  <div class="recent-thumb"><div class="recent-img" style="background:linear-gradient(135deg,#92400e,#f59e0b)">&#129374;</div><div class="recent-label">Pancakes</div></div>
+                  <div class="recent-thumb"><div class="recent-img" style="background:linear-gradient(135deg,#1e3a5f,#3b82f6)">&#129367;</div><div class="recent-label">Buddha</div></div>
+                </div>
+                <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Breakfast</div>
+                <div class="meal-card"><div class="meal-thumb" style="background:linear-gradient(135deg,#166534,#22c55e)">&#127796;</div><div class="meal-info"><div class="meal-name">Protein Smoothie Bowl</div><div class="meal-macros">420 kcal &middot; 32g P</div></div><div style="font-size:10px;color:var(--text-muted)">&#3647;180</div></div>
+                <div class="meal-card"><div class="meal-thumb" style="background:linear-gradient(135deg,#92400e,#f59e0b)">&#127838;</div><div class="meal-info"><div class="meal-name">Avocado Toast + Eggs</div><div class="meal-macros">380 kcal &middot; 24g P</div></div><div style="font-size:10px;color:var(--text-muted)">&#3647;160</div></div>
+                <div class="meal-card"><div class="meal-thumb" style="background:linear-gradient(135deg,#701a75,#d946ef)">&#127827;</div><div class="meal-info"><div class="meal-name">Acai Power Bowl</div><div class="meal-macros">350 kcal &middot; 18g P</div></div><div style="font-size:10px;color:var(--text-muted)">&#3647;220</div></div>
+                <div class="meal-card"><div class="meal-thumb" style="background:linear-gradient(135deg,#065f46,#10b981)">&#129388;</div><div class="meal-info"><div class="meal-name">Green Protein Shake</div><div class="meal-macros">280 kcal &middot; 30g P</div></div><div style="font-size:10px;color:var(--text-muted)">&#3647;140</div></div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="tab-item"><div class="tab-icon"></div><span>Profile</span></div>
+                <div class="tab-item active"><div class="tab-icon"></div><span>Menu</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>My Day</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Plan</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- AI FEATURES -->
+  <section class="section" id="ai">
+    <div class="container">
+      <div class="feature-grid reverse">
+        <div class="feature-content reveal">
+          <div class="feature-tag">AI-Powered</div>
+          <h2 class="headline-lg feature-title">AI That Knows<br><span class="green-text">Your Menu</span></h2>
+          <p class="feature-desc">Not a generic food database. FitKoh's AI creates personalized meal plans from YOUR kitchen's actual dishes, matched to each member's body composition goals.</p>
+          <ul class="feature-list">
+            <li><div class="feature-icon">&#10024;</div><div class="feature-text"><strong>Personalized Meal Plans</strong><span>One-click AI plans from your menu. Matched to macros, goals, and budget. Members know exactly what to order.</span></div></li>
+            <li><div class="feature-icon">&#128247;</div><div class="feature-text"><strong>Photo to Menu Item</strong><span>Photograph a dish, AI extracts name, macros, and category. Build your menu from photos in minutes.</span></div></li>
+            <li><div class="feature-icon">&#129504;</div><div class="feature-text"><strong>Smart Macro Calculation</strong><span>Targets auto-calculated from weight, height, body scan data, goals, and remaining stay duration.</span></div></li>
+            <li><div class="feature-icon">&#128172;</div><div class="feature-text"><strong>25+ Tool AI Assistant</strong><span>Logs meals, answers nutrition questions, adjusts goals. All through natural conversation.</span></div></li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="screen-content">
+                <div class="screen-header"><div class="screen-date">&#10024; Your Meal Plan</div></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:12px">Based on your goals: 2,200 kcal &middot; 160g protein</div>
+                <div class="plan-card"><div class="plan-meal-type">Breakfast &middot; 8:00 AM</div><div class="plan-meal-name">Protein Smoothie Bowl</div><div class="plan-meal-macros"><span>420 kcal</span><span>32g P</span><span>48g C</span><span>&#3647;180</span></div></div>
+                <div class="plan-card"><div class="plan-meal-type">Lunch &middot; 12:30 PM</div><div class="plan-meal-name">Thai Green Curry + Rice</div><div class="plan-meal-macros"><span>620 kcal</span><span>42g P</span><span>58g C</span><span>&#3647;220</span></div></div>
+                <div class="plan-card"><div class="plan-meal-type">Dinner &middot; 6:30 PM</div><div class="plan-meal-name">Grilled Fish &amp; Vegetables</div><div class="plan-meal-macros"><span>480 kcal</span><span>46g P</span><span>22g C</span><span>&#3647;280</span></div></div>
+                <div class="plan-card"><div class="plan-meal-type">Snack &middot; 4:00 PM</div><div class="plan-meal-name">Protein Bar + Coconut Water</div><div class="plan-meal-macros"><span>320 kcal</span><span>28g P</span><span>36g C</span><span>&#3647;120</span></div></div>
+                <div class="plan-total"><div><div class="plan-total-label">Daily Total</div><div style="font-size:9px;color:var(--text-muted)">148g protein &middot; &#3647;800</div></div><div class="plan-total-cals">1,840 kcal</div></div>
+                <div class="plan-btn">Log All Meals</div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="tab-item"><div class="tab-icon"></div><span>Profile</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Menu</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>My Day</span></div>
+                <div class="tab-item active"><div class="tab-icon"></div><span>Plan</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- FOR TRAINERS -->
+  <section class="section" id="trainers">
+    <div class="container">
+      <div class="feature-grid">
+        <div class="feature-content reveal">
+          <div class="feature-tag">For Trainers</div>
+          <h2 class="headline-lg feature-title">One Trainer.<br><span class="green-text">Twenty Clients.</span></h2>
+          <p class="feature-desc">Replace spreadsheets with a real-time dashboard. See every client's nutrition, workouts, and progress at a glance. Log meals for them during sessions.</p>
+          <ul class="feature-list">
+            <li><div class="feature-icon">&#128101;</div><div class="feature-text"><strong>Client Dashboard</strong><span>All assigned clients on one screen. Today's macros, weight trends, stay duration, and engagement.</span></div></li>
+            <li><div class="feature-icon">&#128200;</div><div class="feature-text"><strong>Deep Client History</strong><span>Infinite-scroll timeline of meals, workouts, notes, and body metrics. Spot patterns. Adjust programs.</span></div></li>
+            <li><div class="feature-icon">&#9997;&#65039;</div><div class="feature-text"><strong>Write Access</strong><span>Log meals for clients, adjust quantities, modify times during in-person consultations.</span></div></li>
+            <li><div class="feature-icon">&#128279;</div><div class="feature-text"><strong>QR Code Sharing</strong><span>Members share data with a 6-digit code or QR scan. Time-limited, revocable, fully in their control.</span></div></li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="screen-content">
+                <div class="screen-header"><div class="screen-date">My Clients</div><div style="font-size:10px;color:var(--text-muted)">12 active</div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">SM</div><div><div class="client-name">Sarah M.</div><div class="client-meta">Day 5 of 14 &middot; 68kg &middot; Active</div></div><div class="client-progress"><div class="client-cals">1,847</div><div class="client-target">/ 2,200 kcal</div></div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">JK</div><div><div class="client-name">James K.</div><div class="client-meta">Day 2 of 7 &middot; 82kg &middot; Moderate</div></div><div class="client-progress"><div class="client-cals" style="color:var(--amber-light)">920</div><div class="client-target">/ 1,800 kcal</div></div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#22c55e,#4ade80)">AL</div><div><div class="client-name">Anna L.</div><div class="client-meta">Day 12 of 21 &middot; 58kg &middot; Very Active</div></div><div class="client-progress"><div class="client-cals">2,100</div><div class="client-target">/ 2,100 kcal &#10003;</div></div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#d946ef,#f0abfc)">TB</div><div><div class="client-name">Tom B.</div><div class="client-meta">Day 1 of 14 &middot; 91kg &middot; Sedentary</div></div><div class="client-progress"><div class="client-cals" style="color:var(--text-dim)">--</div><div class="client-target">Setup pending</div></div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#ef4444,#f87171)">MH</div><div><div class="client-name">Maria H.</div><div class="client-meta">Day 8 of 10 &middot; 62kg &middot; Active</div></div><div class="client-progress"><div class="client-cals">1,560</div><div class="client-target">/ 1,600 kcal</div></div></div>
+                <div class="client-card"><div class="client-avatar" style="background:linear-gradient(135deg,#0ea5e9,#7dd3fc)">RW</div><div><div class="client-name">Robert W.</div><div class="client-meta">Day 3 of 28 &middot; 76kg &middot; Active</div></div><div class="client-progress"><div class="client-cals">1,980</div><div class="client-target">/ 2,400 kcal</div></div></div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="tab-item"><div class="tab-icon"></div><span>Profile</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Menu</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>My Day</span></div>
+                <div class="tab-item active"><div class="tab-icon"></div><span>Clients</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- FOR OWNERS -->
+  <section class="section" id="owners">
+    <div class="container">
+      <div class="feature-grid reverse">
+        <div class="feature-content reveal">
+          <div class="feature-tag">For Gym Owners</div>
+          <h2 class="headline-lg feature-title">Run Your Gym Like a <span class="green-text">Tech Company</span></h2>
+          <p class="feature-desc">Menu CMS with AI image generation. POS integration. WhatsApp lead pipeline. Member analytics. Digital waivers. One platform for everything.</p>
+          <ul class="feature-list">
+            <li><div class="feature-icon">&#127860;</div><div class="feature-text"><strong>Menu CMS + AI Images</strong><span>Add dishes, generate photorealistic images with AI, auto-estimate macros from photos. Live in hours.</span></div></li>
+            <li><div class="feature-icon">&#128722;</div><div class="feature-text"><strong>POS Integration</strong><span>Import your existing restaurant POS menu. AI fuzzy-matches items automatically. No manual data entry.</span></div></li>
+            <li><div class="feature-icon">&#128172;</div><div class="feature-text"><strong>WhatsApp Lead Pipeline</strong><span>Import your WhatsApp community. Track who joins, who converts. Get alerts when new members engage.</span></div></li>
+            <li><div class="feature-icon">&#128203;</div><div class="feature-text"><strong>Digital Health Forms + Waivers</strong><span>Replace paper. Health questionnaires, emergency contacts, and digital signatures captured and stored.</span></div></li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="screen-content">
+                <div class="screen-header"><div class="screen-date">&#9881; Admin &middot; Food</div></div>
+                <div style="display:flex;gap:6px;margin-bottom:10px"><div style="flex:1;height:30px;background:var(--bg-elevated);border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:9px;color:var(--text-dim)">&#128269; Search menu items...</div></div>
+                <div style="font-size:9px;color:var(--text-dim);margin-bottom:8px">32 items &middot; 14 categories</div>
+                <div class="admin-item"><div class="admin-img" style="background:linear-gradient(135deg,#166534,#22c55e)">&#127796;</div><div><div class="admin-name">Protein Smoothie Bowl</div><div class="admin-detail">420 kcal &middot; 32P &middot; 48C &middot; 12F</div></div><div class="admin-badge">247x</div></div>
+                <div class="admin-item"><div class="admin-img" style="background:linear-gradient(135deg,#065f46,#10b981)">&#127835;</div><div><div class="admin-name">Thai Green Curry</div><div class="admin-detail">520 kcal &middot; 38P &middot; 42C &middot; 16F</div></div><div class="admin-badge">183x</div></div>
+                <div class="admin-item"><div class="admin-img" style="background:linear-gradient(135deg,#92400e,#f59e0b)">&#129374;</div><div><div class="admin-name">Banana Pancakes</div><div class="admin-detail">380 kcal &middot; 18P &middot; 52C &middot; 14F</div></div><div class="admin-badge">156x</div></div>
+                <div class="admin-item"><div class="admin-img" style="background:linear-gradient(135deg,#1e3a5f,#3b82f6)">&#129367;</div><div><div class="admin-name">Buddha Bowl</div><div class="admin-detail">460 kcal &middot; 28P &middot; 44C &middot; 10F</div></div><div class="admin-badge">134x</div></div>
+                <div class="admin-item"><div class="admin-img" style="background:linear-gradient(135deg,#701a75,#d946ef)">&#127843;</div><div><div class="admin-name">Grilled Fish + Veggies</div><div class="admin-detail">320 kcal &middot; 42P &middot; 18C &middot; 8F</div></div><div class="admin-badge">98x</div></div>
+                <div style="margin-top:10px;padding:10px;background:var(--green);border-radius:10px;text-align:center;font-size:11px;font-weight:700;color:#050505">+ Add Menu Item</div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="tab-item"><div class="tab-icon"></div><span>Users</span></div>
+                <div class="tab-item active"><div class="tab-icon"></div><span>Food</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Workouts</span></div>
+                <div class="tab-item"><div class="tab-icon"></div><span>Leads</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- COMPARISON -->
+  <section class="section compare-section" id="compare">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="feature-tag" style="display:inline-block">Why FitKoh</div>
+        <h2 class="headline-lg" style="margin-top:12px">Not Another Generic<br>Fitness App</h2>
+      </div>
+      <table class="compare-table reveal reveal-delay-1">
+        <thead><tr><th></th><th class="highlight">FitKoh</th><th>MyFitnessPal</th><th>Trainerize</th></tr></thead>
+        <tbody>
+          <tr><td>Uses YOUR gym's menu</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>AI-generated meal plans</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>No app download required</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>Works fully offline</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>Trainer client dashboard</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+          <tr><td>WhatsApp lead pipeline</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>POS integration</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>Digital health forms &amp; waivers</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+          <tr><td>Multi-language (5 built-in)</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td></tr>
+          <tr><td>White-label / custom domain</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+          <tr><td>Zero app store fees</td><td class="highlight"><span class="check">&#10003;</span></td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PLATFORM CAPABILITIES -->
+  <section class="section">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="feature-tag" style="display:inline-block">Platform</div>
+        <h2 class="headline-lg" style="margin-top:12px">Enterprise Infrastructure.<br>Zero Complexity.</h2>
+      </div>
+      <div class="cap-grid">
+        <div class="cap-card reveal"><div class="cap-icon">&#128241;</div><div class="cap-title">PWA &mdash; No App Store</div><div class="cap-text">Installs from the browser. No Apple review cycles. No Google Play fees. Ship updates instantly to every member.</div></div>
+        <div class="cap-card reveal reveal-delay-1"><div class="cap-icon">&#127760;</div><div class="cap-title">5 Languages</div><div class="cap-text">English, German, French, Italian, Thai. Auto-detects browser language. Adding more is a translation file, not a code change.</div></div>
+        <div class="cap-card reveal reveal-delay-2"><div class="cap-icon">&#9889;</div><div class="cap-title">Offline-First</div><div class="cap-text">Logs meals anywhere. Background sync when back online. Real-time cross-device sync via WebSocket when connected.</div></div>
+        <div class="cap-card reveal reveal-delay-1"><div class="cap-icon">&#128274;</div><div class="cap-title">Security &amp; Compliance</div><div class="cap-text">Row-level security. Hashed API keys. Rate-limited OTP. Digital waivers with versioning. GDPR data export ready.</div></div>
+        <div class="cap-card reveal reveal-delay-2"><div class="cap-icon">&#128202;</div><div class="cap-title">Full Observability</div><div class="cap-text">Sentry error tracking. BetterStack structured logging. PostHog analytics with session replay. You see everything.</div></div>
+        <div class="cap-card reveal reveal-delay-3"><div class="cap-icon">&#128268;</div><div class="cap-title">API-First</div><div class="cap-text">150+ type-safe endpoints. REST API with API keys for external integrations. Connect your CRM, POS, or marketing tools.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE -->
+  <div class="section-divider"></div>
+  <section class="section" style="padding:80px 0">
+    <div class="container">
+      <div class="quote-block reveal">
+        <div class="quote-text">"Members who track nutrition stay 2&ndash;3x longer. FitKoh makes tracking effortless &mdash; from their very first scan."</div>
+        <div class="quote-author">Built by gym operators, for gym operators</div>
+      </div>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- CTA -->
+  <section class="section cta-section" id="cta">
+    <div class="cta-bg"></div>
+    <div class="container">
+      <div class="cta-content">
+        <div class="reveal"><h2 class="headline-xl cta-title">Your Menu.<br>Live. <span class="green-text">Day One.</span></h2></div>
+        <p class="cta-subtitle reveal reveal-delay-1">No setup fees. No app store hassles. Import your POS menu, customize your brand, and your members are tracking in minutes.</p>
+        <div class="cta-buttons reveal reveal-delay-2">
+          <a href="#" class="btn btn-primary" style="padding:18px 36px;font-size:1.05rem">Book a Demo</a>
+          <a href="#" class="btn btn-secondary" style="padding:18px 36px;font-size:1.05rem">See Pricing</a>
+        </div>
+        <div class="reveal reveal-delay-3" style="margin-top:20px">
+          <div class="logo-row">
+            <div class="logo-badge">&#128274; SOC 2 Ready</div>
+            <div class="logo-badge">&#127760; 5 Languages</div>
+            <div class="logo-badge">&#9889; 99.9% Uptime</div>
+            <div class="logo-badge">&#128241; No App Store</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="brand-logo.png" alt="FitKoh" width="32" height="32">
+          <span>FitKoh</span>
+        </div>
+        <ul class="footer-links">
+          <li><a href="#members">Features</a></li>
+          <li><a href="#compare">Compare</a></li>
+          <li><a href="#cta">Book Demo</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+        <div class="footer-text">&copy; 2026 FitKoh. Built in Koh Phangan, Thailand.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll-triggered reveals
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Navbar scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 50); });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Animate macro bars
+    const heroPhone = document.getElementById('phone-tracker');
+    const heroObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          heroPhone.querySelectorAll('.macro-fill').forEach(bar => {
+            const target = bar.classList.contains('cal') ? '84%' : bar.classList.contains('pro') ? '89%' : bar.classList.contains('carb') ? '72%' : '65%';
+            bar.style.width = '0%';
+            requestAnimationFrame(() => { requestAnimationFrame(() => { bar.style.width = target; }); });
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    heroObs.observe(heroPhone);
+
+    // Counter animation
+    const metricsObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.metric-number').forEach(el => {
+            const text = el.textContent;
+            if (text.includes('<') || text.includes('+') || text.includes('%')) return;
+            const num = parseInt(text);
+            if (isNaN(num) || num === 0) return;
+            let current = 0;
+            const step = Math.max(1, Math.ceil(num / 40));
+            const interval = setInterval(() => {
+              current += step;
+              if (current >= num) { current = num; clearInterval(interval); }
+              el.textContent = current;
+            }, 30);
+          });
+          metricsObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    const ms = document.querySelector('.metrics-strip');
+    if (ms) metricsObs.observe(ms);
+  </script>
+</body>
+</html>
